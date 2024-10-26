@@ -1,0 +1,196 @@
+(1) TS = JS + Types added on top of it. TSC(compiler) converts TS->JS bcoz browser does'nt understand TS.
+
+(2) installing TS: npm i --save-dev typescript to download TS, 
+                   npx tsc --init : will create tsc.config file, 
+                   npx tsc <filename.ts> : will compile the ts file into js file  
+Note: we can use a bundler(ex. vite) to install TS, & it will take care of setting up TS by itself.
+
+(3) Setting up tsconfig file: 
+    (a)noEmitOnError: true (this will make sure that ts file is not compiled to js file is there is some type error);
+    (b)
+
+......................................................................................................................................................................................................................
+
+BASIC TYPES:
+...............
+
+(4) using types : ex. let a: number = 4; 
+    -> TS does a lot of type inference by itself(specially on simpler code), so for ex. let a = 4, a = "sfaf" will throw error even when we have not explicitly declared type of a.
+    -> literal types: instead of assigning a DT as type for a var., we can assign strict values. ex. let a:4 = 4; now, a=5 will throw error.
+
+(5) Array Type: ex. const a: number[] = [1,4,12];
+
+(6) Any Type: ex. const a: any = 5; a = "dafa" will not throw error. any type basically shuts down TS.
+Note: TS infers fetch results, null & undefined as any type.
+
+(7) Object Type: ex. const obj : {name: string, age: number, isCoder?: boolean} = {name: "Abhi", age: 22}
+
+(8) Types vs Interfaces: 
+    -> ex. of types: type Person = {name: string, age: number, isCoder?: boolean}, const obj2: Person = {name: "Raj", age: 41, isCoder: false}
+    -> ex. of interfaces: interface Person{name: string, age: number, isCoder?: boolean}
+    -> Only difference is we don't use = in inerface.  
+    -> Note: type can be used for any DT but interfaces can be used only for objects.
+    Ex. type A = number; is possible but interface number will throw error.
+    -> using type makes much more sense over interface.
+ 
+......................................................................................................................................................................................................................
+
+FUNCTION TYPES:
+..................
+
+(9) Defining parameter type & return type: 
+    ex. function sum(n: number, m: number) : number{
+            return n+m;
+        }
+-> Note: generally we don't need to define return type as TS infers it pretty well.
+
+(10) Void Type: If a fxn. does not return anything(does not have a return statement), its return type = void.
+
+(11) Passing fxn. as a parameter inside another fxn.: 
+    Ex. function f1(p1: number, p2: number, sumFxn: (sum: number) => number){
+        return sumFxn(p1+p2);
+    }
+-> Defining type: type SumFxn = (sum: number) => number;
+    so we can rewrite f1 as: function f1(p1:number, p2:number, sumFxn: SumFxn){ return sumFxn(p1+p2) };
+
+......................................................................................................................................................................................................................
+
+TYPE MODIFIERS: 
+..................
+
+(12) (a) Union(|): ex. type ID = number | string
+     (b) Intersection(&) : ex. type A = { name: string } , type B = { id: numbe r} 
+                               const Person: A&B = { name: "Abhi", id: 43 }
+      -> with interface, syntax is: interface C extends A, B {}
+      
+      (c) readonly: We can make a value non-modifiable using this as prefix when defining type.
+      ex. type Person = {name: string, readonly id: number};
+      const person: Person = {name: "Abhi", id = 77};
+      preson.id = 42; //will throw error.
+
+      (d) keyof: when we are passing key of an object in a fxn, we can define its type as keyof ObjType
+        ex. function f1(k: keyof Person, person: Person){ return person[k] }; 
+
+      (e) typeof: we can define type of a variable same as type of another variable using it.
+        ex. const individual = {name: "Ab", age: 22};
+            const people: (typeof individual)[] = []; //people = array of objects where type of all the objects is same as type of individual variable.
+            people.push(individual); //will not throw error but people.push(age: 31) will throw bcoz it does not habe name key.
+
+      (f) indexType([]): suppose we have an object type defined, now we want to assign to a variable which is same as type of a particular key in that object type.
+        ex. type Obj = {name: string, id: number};
+            const x : Obj["id"] = 32; //x ka type = type of key "id" in Obj.
+
+......................................................................................................................................................................................................................
+
+ADVANCED TYPES: 
+..................
+
+(13) as const: add this suffix to make everything readonly type(even nested vars.); Ex. let a = 5 as const; => a can only hold the value 5, so a = 24 will throw error:
+    ->use-case for traversing enum types: ex. if we have to loop around(forEach) the elements of an array, then we have to mention the type of element(for each traversal) & different elements may have different types. So, to solve this.
+    ex. type Person = {
+        level: "Pro" | "Noob" | "Avg" 
+    }
+    we cannot traverse the enum values of level(ie, Pro, Noob & Avg), so solution:
+    const Levels = ["Pro", "Noob", "Avg"] as const
+    type Person = { level: (typeof Levels)[number] }
+    Levels.forEach((level) => clog(level)) 
+
+(14) Tuples: defining type of each element of array,
+        ex. type Tuple = [string, number, number]; const a: Tuple = ["Abhi", 22, 1404];
+
+(15) Generics(<>): works as placeholder Type. Helps create flexible, reusable components while maintaining type safety.
+    ex. function f<T>(array: T[]): T { return array[1] }; 
+        const el = f<number>([2,4,1,5]); // even if we don't mention number, TS will infer it.
+    //here we take an array as arg. & return its element at i=1; here return type depends on arg. type (ie, array of string => return type = string, nos. => no.). So, we have given generic type <T> (we can name it anything, ex <arrayType>).
+    
+    ->Built-in Generics: ex. const a = new Set<string>(); or const b = new Map<number, string>();  
+
+    ->using with type: 
+    ex. type APIResponse<Tdata> = {data: Tdata, isError: boolean}
+        const a: APIResponse <{name: string, age: number}> = {data: {name: "Ab", age: 22}, isError; false}
+        //we can do same as above line by creating type of Tdata separately as:
+        type UserData = APIResponse<{name: string, age: number}>
+        const a: UserData = {data: {name: "Ab", age: 22}, isError; false}
+
+    -> we can give default value to T as: ex. type A<T = string> = {data: T, age: number}; so if we dont pass T type, it will take it as string. So, const a: A = {data: "FASd", age: 21}; will work 
+
+    -> we can constraint T type to a particular DS as: type B <T extends object> = {data: T, isError: boolean}, so now, while using B, T must be an object.
+
+......................................................................................................................................................................................................................
+
+BUILT-IN TYPES: 
+..................   
+
+(16) Pick & Omit: Suppose we have a type defined, now we want to create another type which is a subset of an already defined type.
+    ex. type task = {name: string, id: number, isDone: boolean, marks: number};
+    //now we want to define a type which is same as task but does not have "marks" property ;
+        type B = Omit<task, "marks">
+    //we can do the same as:
+        type B = Pick<task, "name" | "id" | "isDone">
+
+(17) Partial & Required: If we want to crrate a new type which has exactly the properties/keys as another type, but we want all the keys to be optional: type C = Partial<task>
+
+(18) Fxn. Return type: we can create a type which is = to return type of a fxn. as:
+    ex. function f1(a: number, b: number){ return a+b };
+        type A = ReturnType<typeof f1>; // type A = number; 
+
+(19) Record: Suppose we want to give type to a key which can have dynamic name, then we can do so as:
+     type Person = {name: string, age: number} 
+     type B = Record<string, Person[]>; // type B = { [x: string]: Person[] } where x can be anything. 
+    
+(20) Awaited: if we have an async fxn., then it returns a promise but if we want to get what type this promise finally return, we can use :
+    type A = Awaited<ReturnType<typeof f1>>  //where f1 is an async fxn.
+
+......................................................................................................................................................................................................................
+
+TYPE NARROWING: 
+..................  
+
+(21) Never Type: represents values that never occur.
+    ex. type A = {name: string, age: number, skill: "Pro" | "Noob" | "Avg"}
+        switch(A.skill){
+            case "Pro": return "Pass"
+            case "Noob": return "Fail"
+            case "avg": return "Pass"
+            default: console.log(A.skill); //type: never here
+        }
+
+(22) Unknown Type: if we don't know the type yet & we still want to apply type.
+    ex. function f1(data: unknown){
+            if(data!= null && typeof data == object && "name" in data){
+                return data.name;   //if we don't apply if condition, this will give error
+            }
+        }
+
+(23) as castinng: ex. type A = {name: string}; 
+                      fetch("faf").then((res)=>res.json()).then((data) => return data as A) 
+    -> not much useful as TS trusts us data data is of type A & does not check for itself
+
+(24) satisfies: used when we want an instance of a type holds its speceficity.
+    ex. type A = {date: string | Date};
+        const b = {date: New Date()} satisfies A; // type of date in b = Date (& not string | Date)
+
+(25) Discriminated Union: suppose we have an object type with props: success, data? & errorMessage?; if success = true, we get data & if it is false, we get errorMessage. But for the type created, we'll always have data & errorMessage as optional, which is not true. So, we can do:
+    type SuccessResponse = {success: true, data: {id: number, name: string} };
+    type ErrorResponse = {success: false, errorMessage: string};
+    type APIResponse = SuccessResponse | ErrorResponse
+
+(26) Fxn. Overload: If we want to create a sum fxn. which can either take 2 nos. & return there sum or it can take an array of nos. & return there sum. We can do:
+    function sum(a: number, b: number): number  //fxn signature 1
+    function sum(a: number[]): number           //fxn signature 2
+    function sum(a: number | number[], b?: number){ //actual fxn.
+        if(Array.isArray(a)){
+            return a.reduce((acc, curr) => acc+curr, 0)
+        }
+        if(b!= null) return a+b;
+    }
+    //if we would not write fxn signatures, then this sum fxn. could have also taken: sum([2,3,7], 4); as input which we don't want.
+
+......................................................................................................................................................................................................................
+
+REAL WORLD TYPESCRIPT: 
+........................
+
+(27) adding // @ts-ignore just above a line will make sure TSC will ignore this line.
+
+(28) .d.ts files are used to specially declare types. These need not to be imported to use the types.
