@@ -194,3 +194,41 @@ REAL WORLD TYPESCRIPT:
 (27) adding // @ts-ignore just above a line will make sure TSC will ignore this line.
 
 (28) .d.ts files are used to specially declare types. These need not to be imported to use the types.
+
+......................................................................................................................................................................................................................
+
+Using TS in React: 
+........................
+
+(29) Passing type to props: 
+    ex. export function SomePage({ name, id }: {name: string id: number});
+    or we can do: type SomePagePropType = {name: string id: number}
+    & Some({name, id}: SomePagePropType)
+    -> note if we are passing another component as children(prop), then type = ReactNode
+
+ (30) To use built-in props for an element(ex. for button element, we have props like disabled, onClick, etc.), we can use 'ComponentProps';
+    ex. import type { ComponentProps } from "react"
+        type ButtonProps = {
+            outline?: boolean
+        } & ComponentProps<"Button">
+        export function Button({outline, ...props}){
+            //do something
+        }
+
+(31) useState Hook: const [value, setValue] = useState("");
+    -> TS infers type based on default value, ex. here, default = "" => type = string,
+       but if we don't provide any default value, we can declare type using generics as:
+       const [value, setValue] = useState<string>();
+       //so now type = string | undefined (bcoz default value = undefined)
+
+(32) useRef Hook: const inputRef = useRef<HTMLInputElement>(null)  //must be null
+                  const value = useRef()
+                  value.current = 10
+                  input.current?.focus()
+                  return <input ref={inputRef} />
+
+(33) useReducer Hook: while building type for action, split it for all action type joined by |
+    ex. type Action = {type: "INCREMENT", increaseBy: number} | {type: "DECREMENT", decreaseBy: number}
+
+(34) useContext Hook:
+
